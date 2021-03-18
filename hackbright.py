@@ -76,25 +76,51 @@ def get_project_by_title(title):
 def get_grade_by_github_title(github, title):
     """Print grade student received for a project."""
     
-    pass
-    # QUERY = """
-    #     SELECT student_github, project_title, grade
-    #     FROM grades
-    #     WHERE student_github = :github AND project_title = :title
-    #     """
+    QUERY = """
+        SELECT student_github, project_title, grade
+        FROM grades
+        WHERE student_github = :github AND project_title = :title
+        """
 
-    # db_cursor = db.session.execute(QUERY, {'student_github' : github, 
-    #                                         'project_title': title})
+    db_cursor = db.session.execute(QUERY, {'github' : github, 
+                                            'title': title})
 
-    # row = db_cursor.fetchone()
+    row = db_cursor.fetchone()
 
-    # print(f"GitHub user {row[0]} got a {row[2]} on the {row[1]} project.")
+    print(f"GitHub user {row[0]} got a {row[2]} on the {row[1]} project.")
 
 
 def assign_grade(github, title, grade):
     """Assign a student a grade on an assignment and print a confirmation."""
-    pass
+    
+    QUERY = """
+        INSERT INTO grades (student_github, project_title, grade)
+            VALUES (:github_name, :title_name, :project_grade)
+        """
+    
+    db.session.execute(QUERY, {'github_name': github,
+                                'title_name': title,
+                                'project_grade': grade})
 
+    db.session.commit()
+
+    print(f"Successfully updated {github}'s score of {grade} on {title}")
+
+def add_project(title, description, max_grade):
+    """Create a project with title, description, max_grade."""
+
+    QUERY = """
+        INSERT INTO projects (title, description, max_grade)
+            VALUES (:project_title, :proj_description, :proj_max_grade)
+        """
+    
+    db.session.execute(QUERY, {'project_title': title,
+                                'proj_description': description,
+                                'proj_max_grade': max_grade})
+
+    db.session.commit()
+
+    print(f"Successfully added {title} project with max grade of {max_grade}.")
 
 def handle_input():
     """Main loop.
@@ -119,6 +145,10 @@ def handle_input():
             first_name, last_name, github = args  # unpack!
             make_new_student(first_name, last_name, github)
 
+        elif command == "add_project":
+            title, description, max_grade = args
+            add_project(title, description, max_grade)
+
         else:
             if command != "quit":
                 print("Invalid Entry. Try again.")
@@ -127,7 +157,7 @@ def handle_input():
 if __name__ == "__main__":
     connect_to_db(app)
 
-    # handle_input()
+    handle_input()
 
     # To be tidy, we close our database connection -- though,
     # since this is where our program ends, we'd quit anyway.
